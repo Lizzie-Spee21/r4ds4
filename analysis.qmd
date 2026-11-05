@@ -49,19 +49,47 @@ basketball_tibble <- nba_recruits |>
 ```
 
 ```{r}
+notable_players <- basketball_tibble |>
+  filter(
+    name %in% c("LeBron James", "Chris Paul", "Kevin Durant", "Dwight Howard")
+  ) |>
+  mutate(
+    label_x = case_when(
+      name == "LeBron James" ~ 8,
+      name == "Kevin Durant" ~ 15,
+      name == "Chris Paul" ~ 24,
+      name == "Dwight Howard" ~ 8
+    ),
+    label_y = case_when(
+      name == "LeBron James" ~ 24.7,
+      name == "Kevin Durant" ~ 20.5,
+      name == "Chris Paul" ~ 18.2,
+      name == "Dwight Howard" ~ 15.5
+    )
+  )
+
 basketball_tibble |>
   filter(!is.na(rank), !is.na(top_mean_wa)) |>
   ggplot(aes(x = rank, y = top_mean_wa, color = tier)) +
   geom_point() +
   geom_smooth(method = "lm", formula = y ~ x, se = FALSE, color = "black") +
-  geom_text(
-    data = \(data) filter(
-      data,
-      name %in% c("LeBron James", "Chris Paul", "Kevin Durant", "Dwight Howard")
-    ),
-    aes(label = name),
-    nudge_y = 0.8,
-    show.legend = FALSE
+  geom_segment(
+    data = notable_players,
+    aes(x = rank, y = top_mean_wa, xend = label_x, yend = label_y),
+    inherit.aes = FALSE,
+    color = "gray30",
+    linewidth = 0.3
+  ) +
+  geom_label(
+    data = notable_players,
+    aes(x = label_x, y = label_y, label = name),
+    inherit.aes = FALSE,
+    color = "black",
+    fill = "white",
+    size = 3
+  ) +
+  scale_x_continuous(
+    expand = expansion(mult = c(0.02, 0.02))
   ) +
   labs(
     x = "Recruit rank",
